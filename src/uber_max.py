@@ -43,17 +43,17 @@ def time_to_index(time):
 	return time.hour / time_slots
 
 
-def estimate_revenue(st_time, pk_zone, dp_zone, th, car_type="UberX"):
+def estimate_revenue(st_time, pk_zone, dp_zone, th, car_type="UberX", zero_threshold=0.1):
 	info = G[time_to_index(st_time)][pk_zone][dp_zone]
 	mu = float(info[0]) / data_date_range
 	prob = 1.0 - poisson.cdf(th, mu)
-	if math.isnan(prob) or prob < 0.1:
+	if math.isnan(prob) or prob < zero_threshold:
 		return 0
 	revenue = compute_fare(info[1], info[2], car_type)
 	return prob * revenue
 
 
-def plan_route(start, start_time, dest, dest_time, th=6, grace_period_seconds=500):
+def plan_route(start, start_time, dest, dest_time, th=6, grace_period_seconds=500, soft_margin=0.8):
 	start_zone = lookup_zone(*start)
 	dest_zone = lookup_zone(*dest)
 	timeline = []
@@ -70,7 +70,7 @@ def plan_route(start, start_time, dest, dest_time, th=6, grace_period_seconds=50
 					timedelta(seconds=G[time_to_index(start_time)][start_zone][dp_zone][1]): # + \
 					# grace_period_seconds):
 			continue
-		if mer < max_exp_rev * 0.8:
+		if mer < max_exp_rev * soft_margin:
 			continue
 		timeline.append(current)
 		for pk_zone, trip_info in enumerate(H[time_to_index(dp_time)][dp_zone]):
@@ -94,3 +94,5 @@ next_dests = plan_route((40.8047413, -73.9653582), # 40.795675, -73.970410
                        datetime.now(),
                        (40.6413151, -73.7803278),
                        datetime.now() + timedelta(hours=4))
+
+print next_dests
