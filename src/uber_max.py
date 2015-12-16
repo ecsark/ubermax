@@ -1,6 +1,7 @@
 from scipy.stats import poisson
 import heapq
 from datetime import datetime, timedelta
+import math
 
 import cPickle as pickle
 
@@ -46,11 +47,13 @@ def estimate_revenue(st_time, pk_zone, dp_zone, th, car_type="UberX"):
 	info = G[time_to_index(st_time)][pk_zone][dp_zone]
 	mu = float(info[0]) / data_date_range
 	prob = 1.0 - poisson.cdf(th, mu)
+	if math.isnan(prob) or prob < 0.1:
+		return 0
 	revenue = compute_fare(info[1], info[2], car_type)
 	return prob * revenue
 
 
-def plan_route(start, start_time, dest, dest_time, th=10, grace_period_seconds=500):
+def plan_route(start, start_time, dest, dest_time, th=6, grace_period_seconds=500):
 	start_zone = lookup_zone(*start)
 	dest_zone = lookup_zone(*dest)
 	timeline = []
@@ -61,13 +64,13 @@ def plan_route(start, start_time, dest, dest_time, th=10, grace_period_seconds=5
 		current = heapq.heappop(to_process)
 		time_left, dp_zone, mer = current[0], current[1], current[3]
 		dp_time = dest_time - timedelta(seconds=time_left)
-		if dp_time < start_time + timedelta(seconds=grace_period_seconds):
+		if dp_time < start_time: # + timedelta(seconds=grace_period_seconds):
 			break
 		if dp_time < start_time + \
-				timedelta(seconds=G[time_to_index(start_time)][start_zone][dp_zone][1] + \
-						grace_period_seconds):
+					timedelta(seconds=G[time_to_index(start_time)][start_zone][dp_zone][1]): # + \
+					# grace_period_seconds):
 			continue
-		if mer < max_exp_rev:
+		if mer < max_exp_rev * 0.8:
 			continue
 		timeline.append(current)
 		for pk_zone, trip_info in enumerate(H[time_to_index(dp_time)][dp_zone]):
@@ -82,12 +85,12 @@ def plan_route(start, start_time, dest, dest_time, th=10, grace_period_seconds=5
 		if start_zone == n[1]:
 			next_dest.append(n)
 		first_trip_revenue = estimate_revenue(start_time, start_zone, n[1], th)
-		next_dest.append((first_total_seconds, start_zone, n[2], [3] + first_trip_revenue))
+		next_dest.append((first_total_seconds, start_zone, n[2], n[3] + first_trip_revenue))
 	next_dest = sorted(next_dest, key=lambda k: k[3], reverse=True)
 	return next_dest
 
 
-next_dests = plan_route((40.812234, -73.961687),
+next_dests = plan_route((40.8047413, -73.9653582), # 40.795675, -73.970410
                        datetime.now(),
-                       (40.664259, -73.810214),
+                       (40.6413151, -73.7803278),
                        datetime.now() + timedelta(hours=4))
