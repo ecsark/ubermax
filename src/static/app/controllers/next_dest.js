@@ -7,6 +7,7 @@ app.controller('NextDest', function($scope, $mdToast, $mdDialog, $animate, $log,
     $scope.dynamicMoveCtr = 0;
     $scope.start_time = null;
     $scope.end_time = null;
+    $scope.result_markers = [];
     $scope.marker_st = {
       id: 0,
       coords: {
@@ -98,6 +99,41 @@ app.controller('NextDest', function($scope, $mdToast, $mdDialog, $animate, $log,
       }
     };
 
+    var createResultMarker = function(latitude, longitude, value, id) {
+          var ret = {
+            latitude: latitude,
+            longitude: longitude,
+            title: 'm' + id
+          };
+          ret["id"] = id;//$scope.result_markers.length();
+          return ret;
+    };
+
+    $scope.toastPosition = {
+        bottom: true,
+        top: true,
+        left: false,
+        right: true
+    };
+
+    $scope.getToastPosition = function() {
+        return Object.keys($scope.toastPosition)
+            .filter(function(pos) {
+                return $scope.toastPosition[pos];
+            })
+            .join(' ');
+    };
+
+    function showToast(msg) {
+            $mdToast.show(
+                $mdToast.simple()
+                .content(msg)
+                .position($scope.getToastPosition())
+                .action('OK')
+                .highlightAction(true)
+                .hideDelay(4000)
+            );
+        }
     /*$scope.$watchCollection("marker.coords", function (newVal, oldVal) {
       if (_.isEqual(newVal, oldVal))
         return;
@@ -119,14 +155,33 @@ app.controller('NextDest', function($scope, $mdToast, $mdDialog, $animate, $log,
   }, 1000);*/
   $scope.query = function() {
       if ($scope.start_time && $scope.end_time) {
+          if ($scope.start_time >= $scope.end_time) {
+              showToast("Start time should be earlier than end time.");
+              return;
+          }
           var target = "/next/";
           function makeLocationTime(marker, time) {
               var t = marker.coords.latitude.toString() + "," + marker.coords.longitude.toString();
               return t + "@" + time.getTime().toString();
           }
           $http.get(target + makeLocationTime($scope.marker_st, $scope.start_time) + "/" + makeLocationTime($scope.marker_ed, $scope.end_time))
-          .then(function(response) {$scope.names = response.data.records;});
-        }
+          .then(function(response) {
+              var results = JSON.parse(response.data);
+              var res = []
+              for(var i=0; i< results.length; ++i) {
+                  var r = results[i];
+                 res.push(createResultMarker(r[0][0], r[0][1], r[1], i+2));
+              };
+
+              $scope.result_markers = res;
+          });
+      } else if (!$scope.start_time) {
+          showToast("Please specify start time.");
+          return;
+      } else if (!$scope.end_time) {
+          showToast("Please specify end time.");
+          return;
+      }
   }
 });
 
