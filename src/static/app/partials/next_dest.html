@@ -1,0 +1,45 @@
+<md-content class="md-padding" layout="column">
+
+<md-toolbar>
+      <h3>
+        <md-button ng-click=query()>Test</md-button>
+      </h3>
+    </md-toolbar>
+    <!--<md-fab-speed-dial ng-hide="demo.hidden" md-direction="left" md-open="demo.isOpen"
+                       class="md-scale md-fab-top-right" ng-class="{ 'md-hover-full': demo.hover }"
+                       ng-mouseenter="demo.isOpen=true" ng-mouseleave="demo.isOpen=false">
+      <md-fab-trigger>
+        <md-button aria-label="menu" class="md-fab md-warn">
+          <md-tooltip md-direction="top" md-visible="tooltipVisible">Menu</md-tooltip>
+          <md-icon md-svg-src="img/icons/menu.svg" aria-label="menu"></md-icon>
+        </md-button>
+      </md-fab-trigger>
+      <md-fab-actions>
+        <div ng-repeat="item in demo.items">
+          <md-button aria-label="{{item.name}}" class="md-fab md-raised md-mini"
+                     ng-click="demo.openDialog($event, item)">
+            <md-tooltip md-direction="{{item.direction}}" md-visible="tooltipVisible"
+                        md-autohide="false">
+              {{item.name}}
+            </md-tooltip>
+            <md-icon md-svg-src="{{item.icon}}" aria-label="{{item.name}}"></md-icon>
+          </md-button>
+        </div>
+      </md-fab-actions>
+  </md-fab-speed-dial>-->
+
+
+<ui-gmap-google-map center='map.center' zoom='map.zoom' draggable="true" options="options">
+    <ui-gmap-marker coords="marker_st.coords" options="marker_st.options" events="marker_st.events" idkey="marker_st.id">
+    </ui-gmap-marker>
+    <ui-gmap-marker coords="marker_ed.coords" options="marker_ed.options" events="marker_ed.events" idkey="marker_ed.id">
+    </ui-gmap-marker>
+</ui-gmap-google-map>
+
+</md-content>
+<!--<div ng-cloak>
+    <ul>
+        <li>coords update ctr: {{coordsUpdates}}</li>
+        <li>dynamic move ctr: {{dynamicMoveCtr}}</li>
+    </ul>
+</div>-->

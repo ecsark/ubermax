@@ -82,8 +82,13 @@ class UberMax:
 			first_trip_revenue = self.estimate_revenue(start_time, start_zone, n[1], th)
 			next_dest.append((n[1], n[3] + first_trip_revenue))
 		next_dest = sorted(next_dest, key=lambda k: k[1], reverse=True)
-		return [(self.resolve_zone(n[0]), n[1]) for n in next_dest]
-
+		results = []
+		hops = {}
+		for n in next_dest:
+			if n[0] not in hops:
+				results.append((self.resolve_zone(n[0]), n[1]))
+				hops[n[0]] = 1
+		return results
 
 def test():
 	planner = UberMax("/Users/ecsark/Documents/bigdata/project/data/")

@@ -1,0 +1,108 @@
+<md-tabs md-border-bottom md-center-tabs="true" md-swipe-content="true" md-no-ink="true">
+	<md-tab label="Positions">
+		<md-content class="md-padding">
+		<md-list layout-padding>
+			<md-list-item layout layout-sm="row">
+				<div class="order-request-detail-header">Ticker</div>
+				<div class="order-request-detail-header">Ordered Long</div>
+				<div class="order-request-detail-header">Confirmed Long</div>
+				<div class="order-request-detail-header">Available Long</div>
+				<div class="order-request-detail-header">Ordered Short</div>
+				<div class="order-request-detail-header">Confirmed Short</div>
+				<div class="order-request-detail-header">Available Short</div>
+			</md-list-item>
+			<md-list-item ng-repeat="position in positions" layout layout-sm="row">
+				<div class="order-request-detail">{{position.key}}</div>
+				<div class="order-request-detail">{{position.value.orderedLong}}</div>
+				<div class="order-request-detail">{{position.value.confirmedLong}}</div>
+				<div class="order-request-detail">{{position.value.availableLong}}</div>
+				<div class="order-request-detail">{{position.value.orderedShort}}</div>
+				<div class="order-request-detail">{{position.value.confirmedShort}}</div>
+				<div class="order-request-detail">{{position.value.availableShort}}</div>
+			</md-list-item>
+		</md-list>
+	</md-content>
+</md-tab>
+
+<md-tab label="Orders" >
+		<md-list layout-padding>
+			<md-list-item layout layout-sm="row">
+				<div class="order-request-detail-header">Ticker</div>
+				<div class="order-request-detail-header">Direction</div>
+				<div class="order-request-detail-header">Offset</div>
+				<div class="order-request-detail-header">Volume</div>
+				<div class="order-request-detail-header">Intended Price</div>
+				<div class="order-request-detail-header">Price Type</div>
+				<div class="order-request-detail-header">Traded Volume</div>
+				<div class="order-request-detail-header">Status</div>
+			</md-list-item>
+			<md-list-item ng-repeat="order in orderRequests" layout layout-sm="row">
+				<div class="order-request-detail">{{order.ticker}}</div>
+				<div class="order-request-detail" ng-if="order.dir == 0">Buy</div>
+				<div class="order-request-detail" ng-if="order.dir == 1">Sell</div>
+				<div class="order-request-detail" ng-if="order.offset == 0">Open</div>
+				<div class="order-request-detail" ng-if="order.offset == 1">Close</div>
+				<div class="order-request-detail">{{order.requestedVolume}}</div>
+				<div class="order-request-detail">{{order.requestedPrice.toFixed(2)}}</div>
+				<div class="order-request-detail" ng-if="order.priceType == 0">Limit</div>
+				<div class="order-request-detail" ng-if="order.priceType == 1">Market</div>
+				<div class="order-request-detail">{{order.tradedVolume}}</div>
+				<!--<div class="order-request-detail">{{order.time}}</div>-->
+				<div class="order-request-detail" ng-if="order.status == 0">Sending</div>
+				<div class="order-request-detail" ng-if="order.status == 1">Succeeded</div>
+				<div class="order-request-detail" ng-if="order.status == 2">Partially</div>
+				<div class="order-request-detail" ng-if="order.status == 3">Invalid</div>
+				<div class="order-request-detail" ng-if="order.status == 4">Canceling</div>
+				<div class="order-request-detail" ng-if="order.status == 5">Canceled</div>
+			</md-list-item>
+		</md-list>
+</md-tab>
+
+	<md-tab label="Trades">
+		<md-content class="md-padding">
+			<md-list layout-padding>
+				<md-list-item layout layout-sm="row">
+					<div class="trade-history-detail-header">Ticker</div>
+					<div class="trade-history-detail-header">Direction</div>
+					<div class="trade-history-detail-header">Offset</div>
+					<div class="trade-history-detail-header">Traded Volume</div>
+					<div class="trade-history-detail-header">Traded Price</div>
+					<div class="trade-history-detail-header">Trade Time</div>
+				</md-list-item>
+				<md-list-item ng-repeat="trade in trades" layout layout-sm="row">
+					<div class="trade-history-detail">{{trade.ticker}}</div>
+					<div class="trade-history-detail" ng-if="trade.dir == 0">Buy</div>
+					<div class="trade-history-detail" ng-if="trade.dir == 1">Sell</div>
+					<div class="trade-history-detail" ng-if="trade.offset == 0">Open</div>
+					<div class="trade-history-detail" ng-if="trade.offset == 1">Close</div>
+					<div class="trade-history-detail">{{trade.tradedVolume}}</div>
+					<div class="trade-history-detail">{{trade.tradedPrice.toFixed(2)}}</div>
+					<div class="trade-history-detail">{{trade.time}}</div>
+				</md-list-item>
+			</md-list>
+		</md-content>
+	</md-tab>
+
+	<md-tab label="Cancels">
+		<md-content class="md-padding">
+				<md-list layout-padding>
+					<md-list-item layout layout-sm="row">
+						<div class="order-request-detail-header">OrderID</div>
+						<div class="order-request-detail-header">Status</div>
+						<div class="order-request-detail-header">Time</div>
+					</md-list-item>
+					<md-list-item ng-repeat="cancel in cancelRequests" layout layout-sm="row">
+						<div class="order-request-detail">{{cancel.orderRequestId}}</div>
+						<div class="order-request-detail" ng-if="order.status == 0">Sending</div>
+						<div class="order-request-detail" ng-if="order.status == 1">Succeeded</div>
+						<div class="order-request-detail" ng-if="order.status == 2">Partially</div>
+						<div class="order-request-detail" ng-if="order.status == 3">Invalid</div>
+						<div class="order-request-detail" ng-if="order.status == 4">Canceling</div>
+						<div class="order-request-detail" ng-if="order.status == 5">Canceled</div>
+						<div class="order-request-detail">{{cancel.time}}</div>
+					</md-list-item>
+				</md-list>
+			</md-content>
+		</md-tab>
+
+</md-tabs>

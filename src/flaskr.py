@@ -1,11 +1,12 @@
-from flask import Flask
+from flask import Flask, request, send_from_directory
 from flask_restful import Resource, Api
 from werkzeug.routing import BaseConverter
 from uber_max import UberMax
 from datetime import datetime
 import json
+from nocache import nocache
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='/static')
 app.config.from_object(__name__)
 api = Api(app)
 planner = UberMax("/Users/ecsark/Documents/bigdata/project/data/")
@@ -35,6 +36,17 @@ class NextStopPlanner(Resource):
 		ed_latitude, ed_longitude, ed_time = end
 		next_dest = planner.plan_route((st_latitude, st_longitude), st_time, (ed_latitude, ed_longitude), ed_time)
 		return json.dumps(next_dest)
+
+
+@app.route('/')
+@nocache
+def index():
+	return app.send_static_file('index.html')
+
+@app.route('/<path:path>')
+@nocache
+def send_js(path):
+	return send_from_directory('static', path)
 
 
 app.url_map.converters['location_tm'] = LocationTimeConverter

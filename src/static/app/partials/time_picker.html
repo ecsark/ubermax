@@ -1,0 +1,31 @@
+<md-dialog aria-label="Start Time"  ng-cloak>
+  <form>
+    <md-toolbar>
+      <div class="md-toolbar-tools">
+        <h2>Start Time</h2>
+        <span flex></span>
+      </div>
+    </md-toolbar>
+    <md-dialog-content>
+      <div class="md-dialog-content">
+          <div class="demo-section k-content">
+                 <input kendo-time-picker
+                        ng-model="str"
+                        k-ng-model="obj"
+                        style="width: 100%;" />
+          <!--<pre>
+            str: {{ str }}
+            obj: {{ obj }}
+            typeof obj: {{ getType(obj) }}
+            obj instanceof Date: {{ isDate(obj) }}
+        </pre>-->
+          </div>
+    </md-dialog-content>
+    <md-dialog-actions layout="row">
+    <span flex></span>
+      <md-button ng-click="answer(obj)" md-autofocus>
+        Ok
+      </md-button>
+    </md-dialog-actions>
+  </form>
+</md-dialog>
