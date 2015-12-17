@@ -30,11 +30,15 @@
 
 
 <ui-gmap-google-map center='map.center' zoom='map.zoom' draggable="true" options="options">
-    <ui-gmap-marker coords="marker_st.coords" options="marker_st.options" events="marker_st.events" idkey="marker_st.id">
+    <ui-gmap-marker coords="marker_st.coords" options="marker_st.options" events="marker_st.events" icon="static/assets/images/blue_marker.png" idkey="marker_st.id">
     </ui-gmap-marker>
     <ui-gmap-marker coords="marker_ed.coords" options="marker_ed.options" events="marker_ed.events" idkey="marker_ed.id">
     </ui-gmap-marker>
-    <ui-gmap-markers models="result_markers" coords="'self'" icon="'icon'"></ui-gmap-markers>
+    <ui-gmap-markers models="result_markers" coords="'self'" icon="'icon'" click="clickResult">
+        <ui-gmap-windows show="show">
+            <div ng-non-bindable>{{title}}</div>
+        </ui-gmap-windows>
+    </ui-gmap-markers>
 </ui-gmap-google-map>
 
 </md-content>

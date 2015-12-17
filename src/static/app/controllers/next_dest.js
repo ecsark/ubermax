@@ -14,7 +14,14 @@ app.controller('NextDest', function($scope, $mdToast, $mdDialog, $animate, $log,
         latitude: 40.8047413,
         longitude: -73.9653582
       },
-      options: { draggable: true },
+      options: {
+          draggable: true,
+
+          /*icon: {
+              path: google.maps.SymbolPath.BACKWARD_CLOSED_ARROW,
+              scale: 5
+          }*/
+       },
       events: {
         dragend: function (marker, eventName, args) {
           $log.log('marker dragend');
@@ -53,13 +60,24 @@ app.controller('NextDest', function($scope, $mdToast, $mdDialog, $animate, $log,
       }
     };
 
+    $scope.clickResult = function(marker, eventName, model) {
+        model.show = !model.show;
+    };
+
     $scope.marker_ed = {
       id: 1,
+
       coords: {
         latitude: 40.7089968,
         longitude: -73.9543139
       },
-      options: { draggable: true },
+      options: {
+          draggable: true,
+          /*icon: {
+              path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+              scale: 5
+          }*/
+         },
       events: {
         dragend: function (marker, eventName, args) {
           $log.log('marker dragend');
@@ -99,11 +117,20 @@ app.controller('NextDest', function($scope, $mdToast, $mdDialog, $animate, $log,
       }
     };
 
-    var createResultMarker = function(latitude, longitude, value, id) {
+    var createResultMarker = function(latitude, longitude, value, id, color) {
+        var path = "";
+        switch(Math.floor(color)) {
+            case 0: path = "static/assets/img/red_flag-32.png"; break;
+            case 2: path = "static/assets/img/red3_flag-32.png"; break;
+            default: path = "static/assets/img/red2_flag-32.png";
+        }
+
           var ret = {
             latitude: latitude,
             longitude: longitude,
-            title: 'm' + id
+            title: value,
+            animation: google.maps.Animation.DROP,
+            icon: path
           };
           ret["id"] = id;//$scope.result_markers.length();
           return ret;
@@ -170,7 +197,7 @@ app.controller('NextDest', function($scope, $mdToast, $mdDialog, $animate, $log,
               var res = []
               for(var i=0; i< results.length; ++i) {
                   var r = results[i];
-                 res.push(createResultMarker(r[0][0], r[0][1], r[1], i+2));
+                 res.push(createResultMarker(r[0][0], r[0][1], r[1], i+2, i*3/results.length));
               };
 
               $scope.result_markers = res;
