@@ -104,9 +104,7 @@ app.controller('NextDest', function($scope, $mdToast, $mdDialog, $animate, $log,
           })
           .then(function(time) {
             $scope.end_time = time;
-            $scope.status = 'You said the information was "' + time + '".';
           }, function() {
-            $scope.status = 'You cancelled the dialog.';
           });
           $scope.$watch(function() {
             return $mdMedia('xs') || $mdMedia('sm');
@@ -121,7 +119,7 @@ app.controller('NextDest', function($scope, $mdToast, $mdDialog, $animate, $log,
         var path = "";
         switch(Math.floor(color)) {
             case 0: path = "static/assets/img/red_flag-32.png"; break;
-            case 2: path = "static/assets/img/red3_flag-32.png"; break;
+            //case 2: path = "static/assets/img/red3_flag-32.png"; break;
             default: path = "static/assets/img/red2_flag-32.png";
         }
 
@@ -196,8 +194,10 @@ app.controller('NextDest', function($scope, $mdToast, $mdDialog, $animate, $log,
               var results = JSON.parse(response.data);
               var res = []
               for(var i=0; i< results.length; ++i) {
-                  var r = results[i];
-                 res.push(createResultMarker(r[0][0], r[0][1], r[1], i+2, i*3/results.length));
+                  if (i < 3) {
+                      var r = results[i];
+                     res.push(createResultMarker(r[0][0], r[0][1], r[1], i+2, i));//*3/results.length));
+                 }
               };
 
               $scope.result_markers = res;

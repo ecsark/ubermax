@@ -6,7 +6,7 @@ import cPickle as pickle
 
 
 class UberMax:
-	def __init__(self, data_dir, n_clusters=75, time_slots=1, data_date_range=31):
+	def __init__(self, data_dir, n_clusters=64, time_slots=1, data_date_range=31):
 		self.centroids = pickle.load(open(data_dir + "centroids.pk", "rb"))
 		self.G = pickle.load(open(data_dir + "G.pk", "rb"))
 		self.H = pickle.load(open(data_dir + "H.pk", "rb"))
@@ -50,7 +50,7 @@ class UberMax:
 		revenue = self.compute_fare(info[1], info[2], car_type)
 		return prob * revenue
 
-	def plan_route(self, start, start_time, dest, dest_time, th=6, grace_period_seconds=500, soft_margin=0.8):
+	def plan_route(self, start, start_time, dest, dest_time, th=12, grace_period_seconds=500, soft_margin=0.8):
 		start_zone = self.lookup_zone(*start)
 		dest_zone = self.lookup_zone(*dest)
 		timeline = []

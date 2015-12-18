@@ -1,0 +1,53 @@
+
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>New York Taxi Pickup Locations</title>
+    <style >
+      html { height: 100% }
+body { height: 100%; margin: 0; padding: 0 }
+#map_canvas{
+  width: 100%;
+  height: 100%;
+}
+    </style>
+
+    <script src="http://maps.googleapis.com/maps/api/js"></script>
+    <script type="text/javascript" src="script/markerclusterer.js"></script>
+    <script type="text/javascript" src="script/papaparse.min.js"></script>
+
+    <script>
+      function initialize() {
+        var center = new google.maps.LatLng(40.823276519775391,-73.943183898925781);
+
+        var map = new google.maps.Map(document.getElementById('map_canvas'), {
+          zoom: 10,
+          center: center,
+          mapTypeId: google.maps.MapTypeId.ROADMAP
+        });
+
+        var markers = [];
+
+        var locations = "40.73783394, -73.98587319\n40.7201333 , -73.82908916\n40.80237797, -73.95075455\n40.72077942, -74.0099411 \n40.77494142, -73.95502406\n40.68262355, -73.97793833\n40.64455986, -73.78457692\n40.70483322, -73.93584671\n40.7652934 , -73.9829195 \n40.77074927, -73.86460085\n40.86999861, -73.91887474\n40.75992534, -73.92170085\n40.72255045, -73.99095632\n40.60539682, -73.95416478\n40.72370374, -73.95429286\n40.74302653, -74.00525134\n40.75003206, -73.97715313\n40.66421127, -73.98757477\n40.78483637, -73.97626719\n40.83712422, -73.9402875 \n40.76099259, -73.96799958\n40.74523799, -73.88510217\n40.75307854, -73.99171788\n40.74700356, -73.6137619 \n40.68546867, -73.82140732\n40.83082877, -73.90745799\n40.68440792, -73.95567703\n40.67360926, -73.90018654\n40.62346344, -74.02688293\n40.71249521, -74.00978288\n40.73055473, -74.00128976\n40.69143387, -73.99385406";
+
+        Papa.parse(locations, {
+          complete: function(results) {
+            var arrayLength = results.data.length;
+            for (var i = 0; i < arrayLength; i++) {
+              var latLng = new google.maps.LatLng(parseFloat(results.data[i][0]), parseFloat(results.data[i][1]));
+              var marker = new google.maps.Marker({position: latLng });
+              markers.push(marker);
+              marker.setMap(map);
+            }
+          }
+        });
+        //var markerCluster = new MarkerClusterer(map, markers);
+      }
+      google.maps.event.addDomListener(window, 'load', initialize);
+    </script>
+  </head>
+  <body>
+    <div id="map_canvas"></div>
+  </body>
+</html>

@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 import cPickle as pickle
 
 #kmeans = KMeans(n_clusters=50, n_jobs=-1)
-n_clusters = 75
+n_clusters = 32
 time_slots = 1
 data_date_range = 31
 

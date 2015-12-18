@@ -1,0 +1,53 @@
+
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>New York Taxi Pickup Locations</title>
+    <style >
+      html { height: 100% }
+body { height: 100%; margin: 0; padding: 0 }
+#map_canvas{
+  width: 100%;
+  height: 100%;
+}
+    </style>
+
+    <script src="http://maps.googleapis.com/maps/api/js"></script>
+    <script type="text/javascript" src="script/markerclusterer.js"></script>
+    <script type="text/javascript" src="script/papaparse.min.js"></script>
+
+    <script>
+      function initialize() {
+        var center = new google.maps.LatLng(40.823276519775391,-73.943183898925781);
+
+        var map = new google.maps.Map(document.getElementById('map_canvas'), {
+          zoom: 10,
+          center: center,
+          mapTypeId: google.maps.MapTypeId.ROADMAP
+        });
+
+        var markers = [];
+
+        var locations = "40.77947462, -73.96083355\n40.74205057, -73.99404967\n40.7040933 , -73.79509608\n40.71312003, -74.00606086\n40.85893555, -73.930896  \n40.75969469, -73.97447527\n40.67311732, -73.96445719\n40.74321175, -73.89888191\n40.80422191, -73.95922651\n40.64489038, -73.78973879\n40.8395195 , -73.85007668\n40.77175355, -73.868716  \n40.72351723, -73.95452728\n40.72105773, -73.99019556\n40.76935912, -73.98173467\n40.83966446, -73.93939427\n40.77634895, -73.94865847\n40.68877665, -73.99396388\n40.75567184, -73.98724513\n40.72990955, -74.00216127\n40.78817626, -73.97476578\n40.76390118, -73.92018551\n40.6013751 , -73.98310566\n40.74758466, -73.95121002\n40.76641986, -73.95567195\n40.75102249, -73.97666485\n40.80845032, -73.9401296 \n40.74031468, -74.00606557\n40.72898901, -73.98184919\n40.73313303, -73.99143734\n40.89704132, -73.86741638\n40.77147198, -73.89155388\n40.83982413, -73.90990339\n40.82237482, -73.92634678\n40.75031702, -73.99213012\n40.81608772, -73.95412979\n40.79661861, -73.96841752\n40.69469833, -73.92261929\n40.75886721, -73.99494584\n40.76355274, -73.96867234\n40.71305237, -73.94471512\n40.70825515, -74.01256807\n40.77939866, -73.98036752\n40.66271845, -73.99314541\n40.7565448 , -73.96542786\n40.74081401, -73.97967314\n40.72077179, -74.00596673\n40.75756127, -73.83866119\n40.78774704, -73.9506369 \n40.7211895 , -73.8514239 \n40.67932383, -73.94251569\n40.65271412, -73.76308857\n40.71429389, -73.95864105\n40.74954626, -74.00342857\n40.77154051, -73.96217085\n40.76986809, -73.99055939\n40.69338677, -73.98197521\n40.7789195 , -73.95484359\n40.79754639, -73.93443298\n40.63626003, -73.95779228\n40.74538945, -73.98533478\n40.74742985, -73.87783432\n40.76127625, -73.98355165\n40.74946785, -73.93621521";
+
+        Papa.parse(locations, {
+          complete: function(results) {
+            var arrayLength = results.data.length;
+            for (var i = 0; i < arrayLength; i++) {
+              var latLng = new google.maps.LatLng(parseFloat(results.data[i][0]), parseFloat(results.data[i][1]));
+              var marker = new google.maps.Marker({position: latLng });
+              markers.push(marker);
+              marker.setMap(map);
+            }
+          }
+        });
+        //var markerCluster = new MarkerClusterer(map, markers);
+      }
+      google.maps.event.addDomListener(window, 'load', initialize);
+    </script>
+  </head>
+  <body>
+    <div id="map_canvas"></div>
+  </body>
+</html>
