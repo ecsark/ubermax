@@ -12,6 +12,7 @@ class UberMax:
 		self.H = pickle.load(open(data_dir + "H.pk", "rb"))
 		self.n_clusters = n_clusters
 		self.time_slots = time_slots
+		self.cached_cdf = {}
 		self.data_date_range = data_date_range
 		# base, per_minute, per_mile
 		self.car_fare = {"UberX": [3.0, 0.4, 2.15],
@@ -53,13 +54,16 @@ class UberMax:
 	def estimate_revenue2(self, st_time_index, pk_zone, dp_zone, th, car_type="UberX", zero_threshold=0.1):
 		info = self.G[st_time_index][pk_zone][dp_zone]
 		mu = float(info[0]) / self.data_date_range
-		prob = 1.0 - poisson.cdf(th, mu)
+		key_tuple = (th, mu)
+		if key_tuple not in self.cached_cdf:
+			self.cached_cdf[key_tuple] = 1.0 - poisson.cdf(*key_tuple)
+		prob = self.cached_cdf[key_tuple]
 		if math.isnan(prob) or prob < zero_threshold:
 			return 0
 		revenue = self.compute_fare(info[1], info[2], car_type)
 		return prob * revenue
 
-	def incremental_compute(self, max_hop=3, accuracy=5, max_shift=5, th=12, grace_period_seconds=500):
+	def incremental_compute(self, max_hop=5, accuracy=5, max_shift=6, th=12, grace_period_seconds=500):
 		time_unit = 3600 / accuracy
 		S = []
 		for i in range(self.n_clusters):
