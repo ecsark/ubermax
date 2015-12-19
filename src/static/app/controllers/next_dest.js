@@ -24,15 +24,14 @@ app.controller('NextDest', function($scope, $mdToast, $mdDialog, $animate, $log,
        },
       events: {
         dragend: function (marker, eventName, args) {
-          $log.log('marker dragend');
-          var lat = marker.getPosition().lat();
-          var lon = marker.getPosition().lng();
-          $log.log(lat);
-          $log.log(lon);
+            var dragged_label = dragged_label = "lat: " + $scope.marker_ed.coords.latitude + ' ' + 'lon: ' + $scope.marker_ed.coords.longitude;
+            /*if ($scope.start_time) {
+                dragged_label = $scope.start_time.toString();
+            }*/
 
           $scope.marker_st.options = {
             draggable: true,
-            labelContent: "lat: " + $scope.marker_st.coords.latitude + ' ' + 'lon: ' + $scope.marker_st.coords.longitude,
+            labelContent: dragged_label,
             labelAnchor: "100 0",
             labelClass: "marker-labels"
           };
@@ -47,7 +46,10 @@ app.controller('NextDest', function($scope, $mdToast, $mdDialog, $animate, $log,
             fullscreen: useFullScreen
           })
           .then(function(time) {
-            $scope.start_time = time;
+              if (time) {
+                    $scope.start_time = time;
+                    $scope.marker_st.options.labelContent = time.toString();
+                }
           }, function() {
           });
           $scope.$watch(function() {
@@ -71,24 +73,28 @@ app.controller('NextDest', function($scope, $mdToast, $mdDialog, $animate, $log,
         latitude: 40.7089968,
         longitude: -73.9543139
       },
+
+
       options: {
           draggable: true,
-          /*icon: {
-              path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-              scale: 5
-          }*/
+          icon: "static/assets/img/dest-36.png"
          },
       events: {
         dragend: function (marker, eventName, args) {
-          $log.log('marker dragend');
+          /*$log.log('marker dragend');
           var lat = marker.getPosition().lat();
           var lon = marker.getPosition().lng();
           $log.log(lat);
-          $log.log(lon);
+          $log.log(lon);*/
 
+          var dragged_label ="lat: " + $scope.marker_ed.coords.latitude + ' ' + 'lon: ' + $scope.marker_ed.coords.longitude;
+          /*if ($scope.end_time) {
+              dragged_label = $scope.end_time.toString();
+          }*/
           $scope.marker_ed.options = {
             draggable: true,
-            labelContent: "lat: " + $scope.marker_ed.coords.latitude + ' ' + 'lon: ' + $scope.marker_ed.coords.longitude,
+            labelContent: dragged_label,
+            icon: "static/assets/img/dest-36.png",
             labelAnchor: "100 0",
             labelClass: "marker-labels"
           };
@@ -103,7 +109,10 @@ app.controller('NextDest', function($scope, $mdToast, $mdDialog, $animate, $log,
             fullscreen: useFullScreen
           })
           .then(function(time) {
-            $scope.end_time = time;
+              if (time) {
+                    $scope.end_time = time;
+                    $scope.marker_ed.options.labelContent = time.toString();
+                }
           }, function() {
           });
           $scope.$watch(function() {

@@ -29,35 +29,6 @@
 </head>
 
 <body ng-app="ubermax">
-    <!--<div ng-controller="AppCtrl" layout="row">
-      <md-sidenav class="md-sidenav-left md-whiteframe-z2" style="max-width:15%" md-component-id="left" md-is-locked-open="$mdMedia('gt-md')"  layout-fill>
-          <md-toolbar class="md-theme-indigo" layout="row" layout-align="center center">
-              <img ng-src="static/assets/img/icon-reverse.png" width="32" height="32" alt="sandglass" style="margin-left:15px;margin-right:10px">
-              <h1 class="md-toolbar-tools" style="font-weight:bold">Sandglass</h1>
-          </md-toolbar>
-          <md-content layout-padding ng-controller="LeftCtrl">
-              <md-list>
-                  <md-button ng-click="close()" class="md-primary" hide-gt-md>
-                      <span class="glyphicon glyphicon-chevron-left"></span>Close
-                  </md-button>
-                  <md-list-item ng-repeat="nav in navmap">
-                      <md-button style="width:100%" ng-click="gotoPage(nav.url,nav.name);close();">{{nav.name}}</md-button>
-                  </md-list-item>
-              </md-list>
-          </md-content>
-      </md-sidenav>
-      <md-content flex>
-          <md-toolbar class="md-whiteframe-glow-z1 site-content-toolbar md-default-theme">
-              <div class="md-toolbar-tools">
-
-                  <img ng-src="static/assets/img/icon.png" width="24" height="24" alt="sandglass" style="margin-right:10px" ng-click="toggleLeft()" hide-gt-md>
-                  <h2>{{pageName}}</h2>
-              </div>
-          </md-toolbar>
-          <md-content flex data-animated-view style="height:100%"></md-content>
-      </md-content>
-  </div>-->
-
      <md-content flex data-ng-view style="height:100%"></md-content>
 
 </body>

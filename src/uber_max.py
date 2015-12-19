@@ -6,7 +6,7 @@ import cPickle as pickle
 
 
 class UberMax:
-	def __init__(self, data_dir, n_clusters=64, time_slots=1, data_date_range=31):
+	def __init__(self, data_dir, n_clusters=32, time_slots=1, data_date_range=31):
 		self.centroids = pickle.load(open(data_dir + "centroids.pk", "rb"))
 		self.G = pickle.load(open(data_dir + "G.pk", "rb"))
 		self.H = pickle.load(open(data_dir + "H.pk", "rb"))
@@ -50,6 +50,80 @@ class UberMax:
 		revenue = self.compute_fare(info[1], info[2], car_type)
 		return prob * revenue
 
+	def estimate_revenue2(self, st_time_index, pk_zone, dp_zone, th, car_type="UberX", zero_threshold=0.1):
+		info = self.G[st_time_index][pk_zone][dp_zone]
+		mu = float(info[0]) / self.data_date_range
+		prob = 1.0 - poisson.cdf(th, mu)
+		if math.isnan(prob) or prob < zero_threshold:
+			return 0
+		revenue = self.compute_fare(info[1], info[2], car_type)
+		return prob * revenue
+
+	def incremental_compute(self, max_hop=3, accuracy=5, max_shift=5, th=12, grace_period_seconds=500):
+		time_unit = 3600 / accuracy
+		S = []
+		for i in range(self.n_clusters):
+			arr_j = []
+			for j in range(self.n_clusters):
+				arr_k = []
+				for k in range(24 * accuracy):
+					arr_h = []
+					for h in range(max_shift * accuracy):
+						arr_h.append(0)
+					arr_k.append(arr_h)
+				arr_j.append(arr_k)
+			S.append(arr_j)
+		for hop in range(max_hop):
+			for pk_zone in range(self.n_clusters):
+				print "PK_ZONE " + str(pk_zone)
+				for df_zone in range(self.n_clusters):
+					print "DF_ZONE " + str(df_zone)
+					for t1_z in range(24 * accuracy):
+						pk_time_idx = t1_z / accuracy / self.time_slots
+						for shift_z in range(max_shift * accuracy):
+							df_time_z = t1_z + shift_z
+							if df_time_z > 24 * accuracy:
+								continue
+							actual_df_time = (t1_z + shift_z) * time_unit
+							for next_stop in range(self.n_clusters):
+								demands_1, trip_time_1, distance_1 = self.G[pk_time_idx][pk_zone][next_stop]
+								if trip_time_1 > shift_z * time_unit:
+									continue
+								seconds_left = int(shift_z * time_unit - trip_time_1 - grace_period_seconds)
+								if seconds_left < 0:
+									continue
+								depart_time_2 = actual_df_time - seconds_left
+								t2_z = depart_time_2 / time_unit
+								new_revenue = S[next_stop][df_zone][t2_z][seconds_left/time_unit] + \
+											self.estimate_revenue2(pk_time_idx, pk_zone, next_stop, th)
+								if new_revenue > S[pk_zone][df_zone][t1_z][shift_z]:
+									S[pk_zone][df_zone][t1_z][shift_z] = new_revenue
+		return S
+
+	@staticmethod
+	def time_to_tz(time, accuracy):
+		return (time.hour * 3600 + time.minute * 60 + time.second) * accuracy / 3600
+
+	def plan_route2(self, S, accuracy, start, start_time, dest, dest_time, th=12, grace_period_seconds=500):
+		time_unit = 3600 / accuracy
+		start_zone = self.lookup_zone(*start)
+		dest_zone = self.lookup_zone(*dest)
+		total_seconds = (dest_time - start_time).total_seconds()
+		rank = []
+		for next_stop in range(self.n_clusters):
+			demands_1, trip_time_1, distance_1 = self.G[self.time_to_index(start_time)][start_zone][next_stop]
+			seconds_left = int(trip_time_1 - total_seconds)
+			if seconds_left < 0:
+				continue
+			depart_time_2 = start_time + timedelta(seconds=trip_time_1)
+			t2_z = self.time_to_tz(depart_time_2, accuracy)
+			total_revenue = S[next_stop][dest_zone][t2_z][seconds_left/time_unit] + \
+			                self.estimate_revenue(start_time, start_zone, next_stop, th)
+			rank.append((self.resolve_zone(next_stop), total_revenue))
+		rank = sorted(rank, key=lambda x: x[0], reverse=True)
+		return rank
+
+
 	def plan_route(self, start, start_time, dest, dest_time, th=12, grace_period_seconds=500, soft_margin=0.8):
 		start_zone = self.lookup_zone(*start)
 		dest_zone = self.lookup_zone(*dest)
@@ -63,9 +137,7 @@ class UberMax:
 			dp_time = dest_time - timedelta(seconds=time_left)
 			if dp_time < start_time:  # + timedelta(seconds=grace_period_seconds):
 				break
-			if dp_time < start_time + \
-					timedelta(seconds=self.G[self.time_to_index(start_time)][start_zone][dp_zone][1]):  # + \
-				# grace_period_seconds):
+			if dp_time < start_time + timedelta(seconds=self.G[self.time_to_index(start_time)][start_zone][dp_zone][1]):
 				continue
 			if mer < max_exp_rev * soft_margin:
 				continue
@@ -90,10 +162,18 @@ class UberMax:
 				hops[n[0]] = 1
 		return results
 
+
 def test():
 	planner = UberMax("/Users/ecsark/Documents/bigdata/project/data/")
 	next_dests = planner.plan_route((40.8047413, -73.9653582),  # 40.795675, -73.970410
-                        datetime.now(),
-                        (40.7089968, -73.9543139),  # (40.6413151, -73.7803278),
-                        datetime.now() + timedelta(hours=3))
+	                                datetime.now(),
+	                                (40.7089968, -73.9543139),  # (40.6413151, -73.7803278),
+	                                datetime.now() + timedelta(hours=3))
 	print next_dests
+
+
+"""
+planner = UberMax("/Users/ecsark/Documents/bigdata/project/data/")
+S = planner.incremental_compute()
+pickle.dump(S, open("/Users/ecsark/Documents/bigdata/project/data/" + "S.pk", "wb"))
+"""
