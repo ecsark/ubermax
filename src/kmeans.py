@@ -20,12 +20,15 @@ def read_data(file_name):
 	with open(file_name, 'rb') as f:
 		for line in f:
 			s = line.split(",")
-			data_pk.append([float(s[3]), float(s[4])])
-			data_df.append([float(s[5]), float(s[6])])
-			data_dist.append(float(s[2]))
+			dist = float(s[2])
 			pickup_time = datetime.strptime(s[0], date_format)
 			dropoff_time = datetime.strptime(s[1], date_format)
 			delta = (dropoff_time - pickup_time).total_seconds()
+			if dist < 0.2 or (dist > 1.0 and (delta == 0.0 or dist/delta > 0.033)):  # sanity check: speed should < 120 mph
+				continue
+			data_pk.append([float(s[3]), float(s[4])])
+			data_df.append([float(s[5]), float(s[6])])
+			data_dist.append(dist)
 			data_tm.append(delta)
 			data_st_tm.append((pickup_time).hour/time_slots)
 			data_ed_tm.append((dropoff_time).hour/time_slots)

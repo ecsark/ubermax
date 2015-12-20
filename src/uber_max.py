@@ -3,6 +3,7 @@ import heapq
 from datetime import datetime, timedelta
 import math
 import cPickle as pickle
+from copy import deepcopy
 
 
 class UberMax:
@@ -10,6 +11,8 @@ class UberMax:
 		self.centroids = pickle.load(open(data_dir + "centroids.pk", "rb"))
 		self.G = pickle.load(open(data_dir + "G.pk", "rb"))
 		self.H = pickle.load(open(data_dir + "H.pk", "rb"))
+		self.S = pickle.load(open(data_dir + "S4.pk", "rb"))
+		self.accuracy = 5
 		self.n_clusters = n_clusters
 		self.time_slots = time_slots
 		self.cached_cdf = {}
@@ -61,71 +64,58 @@ class UberMax:
 		if math.isnan(prob) or prob < zero_threshold:
 			return 0
 		revenue = self.compute_fare(info[1], info[2], car_type)
+		if revenue > 300:
+			print st_time_index, pk_zone, dp_zone
 		return prob * revenue
 
-	def incremental_compute(self, max_hop=5, accuracy=5, max_shift=6, th=12, grace_period_seconds=500):
+	def incremental_update(self, S, accuracy=5, max_shift=6, th=12, grace_period_seconds=500):
+		SN = deepcopy(S)
 		time_unit = 3600 / accuracy
-		S = []
-		for i in range(self.n_clusters):
-			arr_j = []
-			for j in range(self.n_clusters):
-				arr_k = []
-				for k in range(24 * accuracy):
-					arr_h = []
-					for h in range(max_shift * accuracy):
-						arr_h.append(0)
-					arr_k.append(arr_h)
-				arr_j.append(arr_k)
-			S.append(arr_j)
-		for hop in range(max_hop):
-			for pk_zone in range(self.n_clusters):
-				print "PK_ZONE " + str(pk_zone)
-				for df_zone in range(self.n_clusters):
-					print "DF_ZONE " + str(df_zone)
-					for t1_z in range(24 * accuracy):
-						pk_time_idx = t1_z / accuracy / self.time_slots
-						for shift_z in range(max_shift * accuracy):
-							df_time_z = t1_z + shift_z
-							if df_time_z > 24 * accuracy:
+		for pk_zone in range(self.n_clusters):
+			print "PK_ZONE " + str(pk_zone)
+			for df_zone in range(self.n_clusters):
+				for t1_z in range(24 * accuracy):
+					pk_time_idx = t1_z / accuracy / self.time_slots
+					for shift_z in range(max_shift * accuracy):
+						# df_time_z = t1_z + shift_z  # drop-off time zone
+						# if df_time_z > 24 * accuracy:  # next-day drop-off
+						# 	continue
+						for next_stop in range(self.n_clusters):
+							demands_1, trip_time_1, distance_1 = self.G[pk_time_idx][pk_zone][next_stop]
+							if trip_time_1 > shift_z * time_unit:
 								continue
-							actual_df_time = (t1_z + shift_z) * time_unit
-							for next_stop in range(self.n_clusters):
-								demands_1, trip_time_1, distance_1 = self.G[pk_time_idx][pk_zone][next_stop]
-								if trip_time_1 > shift_z * time_unit:
-									continue
-								seconds_left = int(shift_z * time_unit - trip_time_1 - grace_period_seconds)
-								if seconds_left < 0:
-									continue
-								depart_time_2 = actual_df_time - seconds_left
-								t2_z = depart_time_2 / time_unit
-								new_revenue = S[next_stop][df_zone][t2_z][seconds_left/time_unit] + \
-											self.estimate_revenue2(pk_time_idx, pk_zone, next_stop, th)
-								if new_revenue > S[pk_zone][df_zone][t1_z][shift_z]:
-									S[pk_zone][df_zone][t1_z][shift_z] = new_revenue
-		return S
+							t2_actual = int(t1_z * time_unit + trip_time_1 + grace_period_seconds)
+							t2_z = t2_actual / time_unit
+							if t2_z > t1_z + shift_z or t2_z >= 24 * accuracy:
+								continue
+							new_revenue = S[next_stop][df_zone][t2_z][t1_z+shift_z-t2_z] + \
+										self.estimate_revenue2(pk_time_idx, pk_zone, next_stop, th)
+							if new_revenue > SN[pk_zone][df_zone][t1_z][shift_z]:
+								SN[pk_zone][df_zone][t1_z][shift_z] = new_revenue
+		return SN
 
 	@staticmethod
 	def time_to_tz(time, accuracy):
 		return (time.hour * 3600 + time.minute * 60 + time.second) * accuracy / 3600
 
-	def plan_route2(self, S, accuracy, start, start_time, dest, dest_time, th=12, grace_period_seconds=500):
-		time_unit = 3600 / accuracy
+	def plan_route2(self, start, start_time, dest, dest_time, th=12, grace_period_seconds=500):
+		time_unit = 3600 / self.accuracy
 		start_zone = self.lookup_zone(*start)
 		dest_zone = self.lookup_zone(*dest)
 		total_seconds = (dest_time - start_time).total_seconds()
 		rank = []
 		for next_stop in range(self.n_clusters):
 			demands_1, trip_time_1, distance_1 = self.G[self.time_to_index(start_time)][start_zone][next_stop]
-			seconds_left = int(trip_time_1 - total_seconds)
+			seconds_left = int(total_seconds - trip_time_1)
 			if seconds_left < 0:
 				continue
 			depart_time_2 = start_time + timedelta(seconds=trip_time_1)
-			t2_z = self.time_to_tz(depart_time_2, accuracy)
-			total_revenue = S[next_stop][dest_zone][t2_z][seconds_left/time_unit] + \
+			t2_z = self.time_to_tz(depart_time_2, self.accuracy)
+			total_revenue = self.S[next_stop][dest_zone][t2_z][seconds_left/time_unit] + \
 			                self.estimate_revenue(start_time, start_zone, next_stop, th)
 			rank.append((self.resolve_zone(next_stop), total_revenue))
-		rank = sorted(rank, key=lambda x: x[0], reverse=True)
-		return rank
+		rank = sorted(rank, key=lambda x: x[1], reverse=True)
+		return rank[:5]
 
 
 	def plan_route(self, start, start_time, dest, dest_time, th=12, grace_period_seconds=500, soft_margin=0.8):
@@ -176,8 +166,29 @@ def test():
 	print next_dests
 
 
-"""
-planner = UberMax("/Users/ecsark/Documents/bigdata/project/data/")
-S = planner.incremental_compute()
-pickle.dump(S, open("/Users/ecsark/Documents/bigdata/project/data/" + "S.pk", "wb"))
-"""
+def train_S():
+	n_clusters, accuracy, max_shift = 32, 5, 6
+	S = []
+	for i in range(n_clusters):
+		arr_j = []
+		for j in range(n_clusters):
+			arr_k = []
+			for k in range(24 * accuracy):
+				arr_h = []
+				for h in range(max_shift * accuracy):
+					arr_h.append(0)
+				arr_k.append(arr_h)
+			arr_j.append(arr_k)
+		S.append(arr_j)
+
+	data_dir = "/Users/ecsark/Documents/bigdata/project/data/"
+	planner = UberMax(data_dir)
+	use_existing = False
+	if use_existing:
+		S = pickle.load(open(data_dir + "S.pk", "rb"))
+	for hop in range(5):
+		S = planner.incremental_update(S, accuracy, max_shift)
+		pickle.dump(S, open(data_dir + "S"+str(hop)+".pk", "wb"))
+
+
+# train_S()

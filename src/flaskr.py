@@ -21,9 +21,6 @@ class LocationTimeConverter(BaseConverter):
 		return float(latitude), float(longitude), dt
 
 	def to_python(self, value):
-		# start, dest = value.split(';')
-		# st, ed = self.convert_location_time(start), self.convert_location_time(dest)
-		# return st + ed
 		return self.convert_location_time(value)
 
 	def to_url(self, values):
@@ -36,7 +33,7 @@ class NextStopPlanner(Resource):
 		ed_latitude, ed_longitude, ed_time = end
 		if st_time >= ed_time:
 			return 200
-		next_dest = planner.plan_route((st_latitude, st_longitude), st_time, (ed_latitude, ed_longitude), ed_time)
+		next_dest = planner.plan_route2((st_latitude, st_longitude), st_time, (ed_latitude, ed_longitude), ed_time)
 		return json.dumps(next_dest)
 
 
